@@ -9,6 +9,20 @@ self.addEventListener('install', function (event) {
    * TODO - Part 2 Step 2
    * Create a function as outlined above
    */
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log("Opened cache");
+        return cache.addAll([
+          'https://introweb.tech/assets/json/ghostCookies.json',
+          'https://introweb.tech/assets/json/birthdayCake.json',
+          'https://introweb.tech/assets/json/chocolateChip.json',
+          'https://introweb.tech/assets/json/stuffing.json',
+          'https://introweb.tech/assets/json/turkey.json',
+          'https://introweb.tech/assets/json/pumpkinPie.json'
+        ]);
+      })
+  );
 });
 
 /**
@@ -21,6 +35,12 @@ self.addEventListener('activate', function (event) {
    * TODO - Part 2 Step 3
    * Create a function as outlined above, it should be one line
    */
+  // Want to check if client is loaded into the scope already (?)
+  // console.log("Scope: ", event.currentTarget.registration.scope);
+  // console.log("Activate: ", event);
+  event.waitUntil(
+    clients.claim()
+  );
 });
 
 // Intercept fetch requests and store them in the cache
@@ -29,4 +49,19 @@ self.addEventListener('fetch', function (event) {
    * TODO - Part 2 Step 4
    * Create a function as outlined above
    */
+  event.respondWith(
+    caches.match(event.request)
+      .then((res) => {
+        if(res){
+          return res;
+        }else{
+          return fetch(event.request).then((res) => {
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, res);
+              });
+          });
+        }
+      })
+  );
 });
